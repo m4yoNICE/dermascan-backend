@@ -97,36 +97,44 @@ export function buildAnalysisDescription(analysisData, candidates) {
     top3.push(candidates[i]);
   }
 
-  const primaryLabel = top3[0]?.label ?? analysisData.condition_name;
-  const primary = formatLabel(primaryLabel);
-  const primaryScore = (top3[0]?.score * 100).toFixed(1);
+const primaryLabel = analysisData.condition_name ?? top3[0]?.label;
+const primary = formatLabel(primaryLabel);
+const primaryScore = (top3[0]?.score * 100).toFixed(1);
 
-  let secondary = "";
+let secondary = "";
 
-  if (top3[1] || top3[2]) {
-    const others = [];
+if (top3[1] || top3[2]) {
+  const others = [];
 
-    if (top3[1]) {
-      others.push(
-        formatLabel(top3[1].label) +
-          " (" +
-          (top3[1].score * 100).toFixed(1) +
-          "%)",
-      );
-    }
+  if (top3[1]) {
+    // strip severity for secondary — pass a label without the severity word
+    const secondaryLabel = top3[1].label;
+    const words = secondaryLabel
+      .split("-")
+      .filter((w) => !["mild", "moderate", "severe"].includes(w));
+    const baseKey = words.join("-");
+    const secondaryName =
+      CONDITION_DISPLAY_NAMES[baseKey] ??
+      words.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
-    if (top3[2]) {
-      others.push(
-        formatLabel(top3[2].label) +
-          " (" +
-          (top3[2].score * 100).toFixed(1) +
-          "%)",
-      );
-    }
-
-    secondary = " Other conditions detected: " + others.join(" and ") + ".";
+    others.push(secondaryName + " (" + (top3[1].score * 100).toFixed(1) + "%)");
   }
 
+  if (top3[2]) {
+    const secondaryLabel = top3[2].label;
+    const words = secondaryLabel
+      .split("-")
+      .filter((w) => !["mild", "moderate", "severe"].includes(w));
+    const baseKey = words.join("-");
+    const secondaryName =
+      CONDITION_DISPLAY_NAMES[baseKey] ??
+      words.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+
+    others.push(secondaryName + " (" + (top3[2].score * 100).toFixed(1) + "%)");
+  }
+
+  secondary = " Other conditions detected: " + others.join(" and ") + ".";
+}
   let disclaimer = "";
 
   if (hadSkip) {
