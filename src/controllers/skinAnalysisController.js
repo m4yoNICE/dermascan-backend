@@ -41,7 +41,7 @@ export async function skinAnalysis(req, res) {
       analysisResult.payload.result === "success"
         ? buildAnalysisDescription(
             analysisResult.payload.data,
-            analysisResult.payload.data.top3,
+            analysisResult.payload.data.candidates,
           )
         : null;
 

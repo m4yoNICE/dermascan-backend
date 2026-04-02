@@ -1,100 +1,186 @@
-// const MEDICAL_ONLY_CONDITIONS = new Set([
-//   "acne-cyst",
-//   "acne-nodules",
-//   "psoriasis",
-//   "out-of-scope",
-// ]);
-
-// function formatLabel(rawLabel) {
-//   if (!rawLabel) return "your skin condition";
-//   const severities = ["mild", "moderate", "severe"];
-//   return rawLabel
-//     .split("-")
-//     .filter((p) => !severities.includes(p))
-//     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-//     .join(" ");
-// }
-
 const MEDICAL_ONLY_CONDITIONS = new Set([
-  "acne-nodularcystic", // replaces acne-cyst and acne-nodules
+  "acne-cyst",
+  "acne-nodules",
   "psoriasis",
   "out-of-scope",
 ]);
 
-const LABEL_DISPLAY_OVERRIDE = {
-  "acne-inflammatory": "Acne Inflammatory (Papules & Pustules)",
-  "acne-nodularcystic": "Severe Nodular/Cystic Acne",
+const CONDITION_DISPLAY_NAMES = {
+  "acne-blackheads": "Acne (Blackheads)",
+  "acne-whiteheads": "Acne (Whiteheads)",
+  "acne-papules": "Acne (Papules)",
+  "acne-pustules": "Acne (Pustules)",
+  "acne-cyst": "Cystic Acne",
+  "acne-nodules": "Nodular Acne",
+  "acne-fungal": "Fungal Acne",
+  eczema: "Eczema",
+  melasma: "Melasma",
+  milia: "Milia",
+  "enlarged-pores": "Enlarged Pores",
+  "post-inflammatory-pigmentation":
+    "Post-Inflammatory Pigmentation (Dark Spots)",
+  "post-inflammatory-erythema": "Post-Inflammatory Erythema (Redness)",
+  psoriasis: "Psoriasis",
+  "out-of-scope": null,
+};
+
+const SEVERITY_DISPLAY = {
+  mild: "Mild",
+  moderate: "Moderate",
+  severe: "Severe",
 };
 
 function formatLabel(rawLabel) {
-  if (!rawLabel) return "your skin condition";
-  const severities = ["mild", "moderate", "severe"];
-  const base = rawLabel
-    .split("-")
-    .filter((p) => !severities.includes(p))
-    .join("-");
+  if (!rawLabel) {
+    return "your skin condition";
+  }
 
-  return (
-    LABEL_DISPLAY_OVERRIDE[base] ??
-    base
-      .split("-")
+  const severities = ["mild", "moderate", "severe"];
+  const words = rawLabel.split("-");
+
+  let severityFound = null;
+  const baseWords = [];
+
+  for (let i = 0; i < words.length; i++) {
+    if (severities.includes(words[i])) {
+      severityFound = words[i];
+    } else {
+      baseWords.push(words[i]);
+    }
+  }
+
+  const baseKey = baseWords.join("-");
+  const displayName = CONDITION_DISPLAY_NAMES[baseKey];
+
+  if (displayName === null) {
+    return "your skin condition";
+  }
+
+  if (!displayName) {
+    // fallback for anything not in the map
+    const fallback = baseWords
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(" ")
-  );
+      .join(" ");
+
+    if (severityFound) {
+      return fallback + " — " + SEVERITY_DISPLAY[severityFound];
+    }
+
+    return fallback;
+  }
+
+  if (severityFound) {
+    return displayName + " — " + SEVERITY_DISPLAY[severityFound];
+  }
+
+  return displayName;
 }
 
 export function buildAnalysisDescription(analysisData, candidates) {
-  if (!candidates || candidates.length === 0) return null;
+  if (!candidates || candidates.length === 0) {
+    return null;
+  }
 
   const top3 = [];
   let hadSkip = false;
 
-  for (const item of candidates) {
-    if (top3.length === 3) break;
-    if (MEDICAL_ONLY_CONDITIONS.has(item.label)) {
+  for (let i = 0; i < candidates.length; i++) {
+    if (top3.length === 3) {
+      break;
+    }
+
+    if (MEDICAL_ONLY_CONDITIONS.has(candidates[i].label)) {
       hadSkip = true;
       continue;
     }
-    top3.push(item);
+
+    top3.push(candidates[i]);
   }
 
-  const primary = formatLabel(top3[0]?.label ?? analysisData.condition_name);
+  const primaryLabel = top3[0]?.label ?? analysisData.condition_name;
+  const primary = formatLabel(primaryLabel);
   const primaryScore = (top3[0]?.score * 100).toFixed(1);
 
   let secondary = "";
+
   if (top3[1] || top3[2]) {
-    const others = [top3[1], top3[2]]
-      .filter(Boolean)
-      .map(
-        (item) =>
-          `${formatLabel(item.label)} (${(item.score * 100).toFixed(1)}%)`,
-      )
-      .join(" and ");
-    secondary = ` Other conditions detected: ${others}.`;
+    const others = [];
+
+    if (top3[1]) {
+      others.push(
+        formatLabel(top3[1].label) +
+          " (" +
+          (top3[1].score * 100).toFixed(1) +
+          "%)",
+      );
+    }
+
+    if (top3[2]) {
+      others.push(
+        formatLabel(top3[2].label) +
+          " (" +
+          (top3[2].score * 100).toFixed(1) +
+          "%)",
+      );
+    }
+
+    secondary = " Other conditions detected: " + others.join(" and ") + ".";
   }
 
-  const disclaimer = hadSkip
-    ? " Some secondary indicators may need professional evaluation — consider consulting a dermatologist for a more accurate diagnosis."
-    : "";
+  let disclaimer = "";
 
-  return `Your skin shows signs of ${primary} (${primaryScore}%).${secondary}${disclaimer}`;
+  if (hadSkip) {
+    disclaimer =
+      " Some secondary indicators may need professional evaluation — consider consulting a dermatologist for a more accurate diagnosis.";
+  }
+
+  return (
+    "Your skin shows signs of " +
+    primary +
+    " (" +
+    primaryScore +
+    "%)." +
+    secondary +
+    disclaimer
+  );
 }
 
 export function buildRecommendDescription(conditionData, recommendationResult) {
-  const condition = conditionData?.condition ?? "your condition";
-  const ingredients = conditionData?.targetIngredients ?? null;
-  const count = recommendationResult?.length ?? 0;
+  let condition = "your condition";
+  let ingredients = null;
+  let count = 0;
 
-  const parts = [];
-  parts.push(
-    `For ${condition}, look for products containing ${ingredients ?? "general skincare ingredients"}.`,
-  );
-
-  if (count > 0) {
-    parts.push(`We found ${count} product(s) that may suit your skin.`);
-  } else {
-    parts.push("We currently have no matching products in our catalog.");
+  if (conditionData && conditionData.condition) {
+    condition = formatLabel(conditionData.condition);
   }
 
-  return parts.join(" ");
+  if (conditionData && conditionData.targetIngredients) {
+    ingredients = conditionData.targetIngredients;
+  }
+
+  if (recommendationResult && recommendationResult.length > 0) {
+    count = recommendationResult.length;
+  }
+
+  let ingredientText = "general skincare ingredients";
+
+  if (ingredients) {
+    ingredientText = ingredients;
+  }
+
+  let result =
+    "For " +
+    condition +
+    ", look for products containing " +
+    ingredientText +
+    ".";
+
+  if (count > 0) {
+    result =
+      result + " We found " + count + " product(s) that may suit your skin.";
+  } else {
+    result = result + " We currently have no matching products in our catalog.";
+  }
+
+  return result;
 }

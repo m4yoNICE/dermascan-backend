@@ -12,4 +12,5 @@ export const ENV = {
   OTP_PASSWORD_OTP: process.env.OTP_PASSWORD_OTP,
   BASE_URL: process.env.BASE_URL,
   AI_API_URL: process.env.AI_API_URL || "http://127.0.0.1:7860",
+  HF_TOKEN: process.env.HF_TOKEN,
 };

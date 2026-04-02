@@ -1,4 +1,4 @@
-import { db } from "../config/db.js";
+import { db } from "../src/config/db.js";
 import {
   role,
   skinConditions,
@@ -6,7 +6,7 @@ import {
   skinProfile,
   skinCareProducts,
   conditionProducts,
-} from "./schema.js";
+} from "../src/drizzle/schema.js";
 import bcrypt from "bcryptjs";
 import { sql } from "drizzle-orm";
 

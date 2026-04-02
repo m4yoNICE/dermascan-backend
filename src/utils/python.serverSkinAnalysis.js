@@ -1,22 +1,30 @@
-import { ENV } from "../config/env";
+import { ENV } from "../config/env.js";
 
 export async function skinAnalyze(imageBuffer) {
   try {
-    // const response = await fetch("http://127.0.0.1:5000/analyze", {
     const response = await fetch(`${ENV.AI_API_URL}/analyze`, {
       method: "POST",
       body: imageBuffer,
       headers: {
         "Content-Type": "application/octet-stream",
+        Authorization: `Bearer ${ENV.HF_TOKEN}`,
       },
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || "Python server error");
+    const text = await response.text();
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(`Python server returned non-JSON: ${text.slice(0, 200)}`);
     }
 
-    return await response.json();
+    if (!response.ok) {
+      throw new Error(data.detail || "Python server error");
+    }
+
+    return data;
   } catch (error) {
     if (error.code === "ECONNREFUSED") {
       throw new Error(

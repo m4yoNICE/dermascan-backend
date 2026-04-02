@@ -82,6 +82,29 @@ export async function analyzeSkinOrchestrator(userId, imageBuffer) {
     }
 
     if (status === "flagged") {
+      //check if condition has severe on its name (for mild conditions with severe severity)
+      const isSevere = transaction.condition_name?.endsWith("-severe");
+
+      //if condition is not flagged but is severe, show the results but no recommendations
+      if (isSevere) {
+        console.log(
+          `[${Date.now() - startTime}ms] Result: FLAGGED (Severe - consult required)`,
+        );
+        return {
+          statusCode: 200,
+          payload: {
+            result: "consult",
+            message:
+              "This condition may require professional dermatological care.",
+            data: {
+              condition_name: transaction.condition_name,
+              confidenceScores: transaction.confidenceScores,
+              image_url: imageUrl,
+            },
+          },
+        };
+      }
+      // normal flagged condition flagging
       console.log(
         `[${Date.now() - startTime}ms] Result: FLAGGED (Medical concern)`,
       );
