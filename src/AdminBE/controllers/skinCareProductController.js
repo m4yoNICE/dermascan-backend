@@ -1,5 +1,5 @@
 import * as skinCareService from "../services/skinCareProductsService.js";
-
+import { uploadToImageKit } from "../../utils/imageKitUpload.js";
 export const getAllProducts = async (req, res) => {
   try {
     const products = await skinCareService.getAllProducts();
@@ -25,14 +25,20 @@ export const getProductById = async (req, res) => {
 
 export const createProduct = async (req, res) => {
   try {
+    let productImage = null;
+    if (req.file) {
+      productImage = await uploadToImageKit(
+        req.file.buffer,
+        `product-${Date.now()}.jpg`,
+        "/products",
+      );
+    }
     const data = {
       ...req.body,
-      productImage: req.file ? req.file.filename : null,
+      productImage,
       dermaTested: req.body.dermaTested === "true",
     };
-    console.log(data);
     const result = await skinCareService.createProduct(data);
-    console.log(result);
     res.status(201).json({
       success: true,
       message: "Product created successfully.",
@@ -46,15 +52,23 @@ export const createProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const product = await skinCareService.getProductById(Number(req.params.id));
-    if (!product) {
+    if (!product)
       return res
         .status(404)
         .json({ success: false, message: "Product not found." });
+
+    let productImage = product.productImage; // keep existing if no new file
+    if (req.file) {
+      productImage = await uploadToImageKit(
+        req.file.buffer,
+        `product-${Date.now()}.jpg`,
+        "/products",
+      );
     }
 
     const data = {
       ...req.body,
-      productImage: req.file ? req.file.filename : product.productImage,
+      productImage,
       dermaTested: req.body.dermaTested === "true",
     };
 
@@ -62,11 +76,13 @@ export const updateProduct = async (req, res) => {
       Number(req.params.id),
       data,
     );
-    res.status(200).json({
-      success: true,
-      message: "Product updated successfully",
-      data: result,
-    });
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "Product updated successfully",
+        data: result,
+      });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

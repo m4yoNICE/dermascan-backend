@@ -9,6 +9,7 @@ import {
 import { skinAnalysis } from "../drizzle/schema.js";
 import { db } from "../config/db.js";
 import { eq } from "drizzle-orm";
+import { uploadToImageKit } from "../utils/imageKitUpload.js";
 
 export async function analyzeSkinOrchestrator(userId, imageBuffer) {
   const startTime = Date.now();
@@ -166,8 +167,13 @@ export async function analyzeSkinOrchestrator(userId, imageBuffer) {
 
 //===== HELPER FUNCTION ==========================
 async function saveImageLogic(userId, imageBuffer) {
-  const savedPath = await saveBufferImage(imageBuffer);
-  return await createStoredImage(userId, savedPath);
+  const fileName = `skin-${userId}-${Date.now()}.jpg`;
+  const photoUrl = await uploadToImageKit(
+    imageBuffer,
+    fileName,
+    "/skin-analysis",
+  );
+  return await createStoredImage(userId, photoUrl);
 }
 
 async function updateTransactionImage(transactionId, imageId) {

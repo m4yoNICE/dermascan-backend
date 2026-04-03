@@ -8,17 +8,21 @@ import {
   buildAnalysisDescription,
   buildRecommendDescription,
 } from "../utils/resultDescription.js";
-// === MAIN IMAGE PROCESSING LOGIC ===
-// Handles the full lifecycle of a skin analysis request
 
 export async function skinAnalysis(req, res) {
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
-    const analysisResult = await analyzeSkinOrchestrator(
-      req.user.id,
-      req.file.buffer,
-    );
+    // drop ref early so if not used, then auto GC
+
+    let buffer = req.file.buffer;
+    req.file.buffer = null;
+    // start skin condition analysis
+    const analysisResult = await analyzeSkinOrchestrator(req.user.id, buffer);
+
+    // after orchestrator, kill the buffer reference to release memory
+    buffer = null;
+    // recommendation and results description building
     let recommendationResult = null;
     let conditionData = null;
 
@@ -49,7 +53,6 @@ export async function skinAnalysis(req, res) {
       analysisResult.payload.result === "success"
         ? buildRecommendDescription(conditionData, recommendationResult)
         : null;
-
 
     return res.status(analysisResult.statusCode).json({
       analysis: analysisResult.payload,

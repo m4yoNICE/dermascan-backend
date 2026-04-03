@@ -13,4 +13,7 @@ export const ENV = {
   BASE_URL: process.env.BASE_URL,
   AI_API_URL: process.env.AI_API_URL || "http://127.0.0.1:7860",
   HF_TOKEN: process.env.HF_TOKEN,
+  IMAGEKIT_PUBLIC_KEY: process.env.IMAGEKIT_PUBLIC_KEY,
+  IMAGEKIT_PRIVATE_KEY: process.env.IMAGEKIT_PRIVATE_KEY,
+  IMAGEKIT_URL_ENDPOINT: process.env.IMAGEKIT_URL_ENDPOINT,
 };

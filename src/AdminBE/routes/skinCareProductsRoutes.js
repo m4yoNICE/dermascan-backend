@@ -2,10 +2,10 @@ import express from "express";
 import * as skinCareController from "../controllers/skinCareProductController.js";
 import { verifyToken } from "../../middleware/verifyToken.js";
 import { checkAdmin } from "../../middleware/checkAdmin.js";
-import { diskSaveMulter } from "../../middleware/DiskSaveMulter.js";
+import { memorySaveMulter } from "../../middleware/memorySaveMulter.js";
 
 const router = express.Router();
-const upload = diskSaveMulter();
+const upload = memorySaveMulter();
 
 router.get(
   "/getSkinProducts",
