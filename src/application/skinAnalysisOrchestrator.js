@@ -1,4 +1,3 @@
-import { saveBufferImage } from "../utils/saveBufferImage.js";
 import { checkImgPython } from "../utils/python.checkImageQuality.js";
 import { skinAnalyze } from "../utils/python.serverSkinAnalysis.js";
 import { createStoredImage } from "../services/imagesServices.js";
