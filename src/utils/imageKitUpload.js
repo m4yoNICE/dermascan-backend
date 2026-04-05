@@ -1,4 +1,4 @@
-import ImageKit from "@imagekit/nodejs";
+import ImageKit, { toFile } from "@imagekit/nodejs";
 import sharp from "sharp";
 import { ENV } from "../config/env.js";
 
@@ -11,6 +11,7 @@ export async function uploadToImageKit(buffer, fileName, folder = "/general") {
   console.log(
     `  → [ImageKit] Compressing image... (original: ${(buffer.length / 1024).toFixed(1)}KB)`,
   );
+  //compress image after analysis not before
   const compressed = await sharp(buffer).jpeg({ quality: 70 }).toBuffer();
   console.log(
     `  → [ImageKit] Compressed to: ${(compressed.length / 1024).toFixed(1)}KB. Uploading...`,
@@ -20,7 +21,7 @@ export async function uploadToImageKit(buffer, fileName, folder = "/general") {
   }
 
   const result = await imagekit.files.upload({
-    file: compressed,
+    file: await toFile(compressed, fileName),
     fileName,
     folder,
   });
