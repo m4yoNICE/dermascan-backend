@@ -6,7 +6,7 @@ export async function checkImgPython(imageBuffer) {
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
 
-  const scriptDirectory = resolve(__dirname, "../../../AI/preprocessing");
+  const scriptDirectory = resolve(__dirname, "../../python");
   const pythonScript = resolve(scriptDirectory, "check_image_quality.py");
   const python = spawn("python", [pythonScript], {
     cwd: scriptDirectory,
