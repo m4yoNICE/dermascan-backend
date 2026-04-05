@@ -71,16 +71,9 @@ export async function analyzeSkinOrchestrator(userId, imageBuffer) {
       console.log(
         `[${Date.now() - startTime}ms] Saving image to storage (background)...`,
       );
-      saveImageLogic(userId, imageBuffer)
-        .then(async (savedImage) => {
-          await updateTransactionImage(transaction.id, savedImage.id);
-          console.log(
-            `[BG] Image saved. ID: ${savedImage.id}, URL: ${savedImage.photoUrl}`,
-          );
-        })
-        .catch((err) => {
-          console.error(`[BG] Image upload failed:`, err.message);
-        });
+      const savedImage = await saveImageLogic(userId, imageBuffer);
+      await updateTransactionImage(transaction.id, savedImage.id);
+      imageUrl = savedImage.photoUrl;
     }
 
     if (status === "flagged") {
