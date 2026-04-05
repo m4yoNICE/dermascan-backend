@@ -1,28 +1,27 @@
 import ImageKit from "@imagekit/nodejs";
+import sharp from "sharp";
 import { ENV } from "../config/env.js";
 
 const imagekit = new ImageKit({
   privateKey: ENV.IMAGEKIT_PRIVATE_KEY,
+  timeout: 15 * 1000,
 });
 
 export async function uploadToImageKit(buffer, fileName, folder = "/general") {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
-
-  try {
-  const start = Date.now();
-  console.log(`[ImageKit] Starting upload...`);
-  const result = await imagekit.files.upload(
-    {
-      file: buffer,
-      fileName,
-      folder,
-    },
-    { signal: controller.signal },
+  console.log(
+    `  → [ImageKit] Compressing image... (original: ${(buffer.length / 1024).toFixed(1)}KB)`,
   );
-  console.log(`[ImageKit] Upload done in ${Date.now() - start}ms`);
+  const compressed = await sharp(buffer).jpeg({ quality: 70 }).toBuffer();
+  console.log(
+    `  → [ImageKit] Compressed to: ${(compressed.length / 1024).toFixed(1)}KB. Uploading...`,
+  );
+
+  const result = await imagekit.files.upload({
+    file: compressed,
+    fileName,
+    folder,
+  });
+
+  console.log(`  → [ImageKit] Upload done. URL: ${result.url}`);
   return result.url;
-  } finally {
-    clearTimeout(timeout);
-  }
 }

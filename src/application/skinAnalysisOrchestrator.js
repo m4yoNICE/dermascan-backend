@@ -68,17 +68,19 @@ export async function analyzeSkinOrchestrator(userId, imageBuffer) {
 
     //SAVING IMAGE LOGIC
     if (status === "flagged" || status === "success") {
-      console.log(`[${Date.now() - startTime}ms] Saving image to storage...`);
-      const savedImage = await saveImageLogic(userId, imageBuffer);
       console.log(
-        `[${Date.now() - startTime}ms] ImageKit upload done. Updating transaction...`,
+        `[${Date.now() - startTime}ms] Saving image to storage (background)...`,
       );
-      await updateTransactionImage(transaction.id, savedImage.id);
-      console.log(
-        `[${Date.now() - startTime}ms] Transaction updated. Fetching final result...`,
-      );
-      transaction = await getTransactionWithCondition(transaction.id);
-      console.log(`[${Date.now() - startTime}ms] Done. Returning response.`);
+      saveImageLogic(userId, imageBuffer)
+        .then(async (savedImage) => {
+          await updateTransactionImage(transaction.id, savedImage.id);
+          console.log(
+            `[BG] Image saved. ID: ${savedImage.id}, URL: ${savedImage.photoUrl}`,
+          );
+        })
+        .catch((err) => {
+          console.error(`[BG] Image upload failed:`, err.message);
+        });
     }
 
     if (status === "flagged") {
