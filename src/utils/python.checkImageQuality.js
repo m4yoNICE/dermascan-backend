@@ -1,52 +1,36 @@
-import { spawn } from "child_process";
-import { resolve, dirname } from "path";
-import { fileURLToPath } from "url";
+import { ENV } from "../config/env.js";
 
 export async function checkImgPython(imageBuffer) {
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
-
-  const scriptDirectory = resolve(__dirname, "../../python");
-  const pythonScript = resolve(scriptDirectory, "check_image_quality.py");
-  const python = spawn("python", [pythonScript], {
-    cwd: scriptDirectory,
-  });
-
-  console.log("Running script at:", pythonScript);
-  console.log("Working directory:", scriptDirectory);
-  return new Promise((resolve, reject) => {
-    let output = "";
-    let errorOutput = "";
-
-    python.stdin.write(imageBuffer);
-    python.stdin.end();
-
-    python.stdout.on("data", (data) => {
-      const text = data.toString();
-      console.log("Python stdout:", text);
-      output += text;
+  try {
+    const response = await fetch(`${ENV.AI_API_URL}/check-quality`, {
+      method: "POST",
+      body: imageBuffer,
+      headers: {
+        "Content-Type": "application/octet-stream",
+        Authorization: `Bearer ${ENV.HF_TOKEN}`,
+      },
     });
 
-    python.stderr.on("data", (data) => {
-      const error = data.toString();
-      console.error("Python stderr:", error);
-      errorOutput += error;
-    });
-    python.on("close", (code) => {
-      try {
-        const result = JSON.parse(output.trim());
-        resolve(result);
-      } catch (e) {
-        reject(
-          new Error(
-            `Invalid JSON. Output: ${output}. Parse error: ${e.message}`,
-          ),
-        );
-      }
-    });
+    const text = await response.text();
 
-    python.on("error", (err) => {
-      reject(new Error(`Failed to spawn: ${err.message}`));
-    });
-  });
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(`Python server returned non-JSON: ${text.slice(0, 200)}`);
+    }
+
+    if (!response.ok) {
+      throw new Error(data.detail || "Python server error");
+    }
+
+    return data;
+  } catch (error) {
+    if (error.code === "ECONNREFUSED") {
+      throw new Error(
+        "Python AI server is not running. Start it with: python server.py",
+      );
+    }
+    throw error;
+  }
 }
