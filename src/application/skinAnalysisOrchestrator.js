@@ -69,16 +69,16 @@ export async function analyzeSkinOrchestrator(userId, imageBuffer) {
     //SAVING IMAGE LOGIC
     if (status === "flagged" || status === "success") {
       console.log(`[${Date.now() - startTime}ms] Saving image to storage...`);
-
       const savedImage = await saveImageLogic(userId, imageBuffer);
-
       console.log(
-        `[${Date.now() - startTime}ms] Image saved. ID: ${savedImage.id}. Updating transaction...`,
+        `[${Date.now() - startTime}ms] ImageKit upload done. Updating transaction...`,
       );
       await updateTransactionImage(transaction.id, savedImage.id);
-      imageUrl = savedImage.photoUrl;
+      console.log(
+        `[${Date.now() - startTime}ms] Transaction updated. Fetching final result...`,
+      );
       transaction = await getTransactionWithCondition(transaction.id);
-      console.log("Image URL: ", imageUrl);
+      console.log(`[${Date.now() - startTime}ms] Done. Returning response.`);
     }
 
     if (status === "flagged") {
@@ -167,12 +167,16 @@ export async function analyzeSkinOrchestrator(userId, imageBuffer) {
 //===== HELPER FUNCTION ==========================
 async function saveImageLogic(userId, imageBuffer) {
   const fileName = `skin-${userId}-${Date.now()}.jpg`;
+  console.log(`  → Uploading to ImageKit...`);
   const photoUrl = await uploadToImageKit(
     imageBuffer,
     fileName,
     "/skin-analysis",
   );
-  return await createStoredImage(userId, photoUrl);
+  console.log(`  → ImageKit done. Saving to DB...`);
+  const result = await createStoredImage(userId, photoUrl);
+  console.log(`  → DB insert done.`);
+  return result;
 }
 
 async function updateTransactionImage(transactionId, imageId) {
