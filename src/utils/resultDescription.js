@@ -102,6 +102,7 @@ const primary = formatLabel(primaryLabel);
 const primaryScore = (top3[0]?.score * 100).toFixed(1);
 
 let secondary = "";
+const LOW_CONFIDENCE_THRESHOLD = 30;
 
 if (top3[1] || top3[2]) {
   const others = [];
@@ -132,8 +133,23 @@ if (top3[1] || top3[2]) {
 
     others.push(secondaryName + " (" + (top3[2].score * 100).toFixed(1) + "%)");
   }
+  // Check if both secondary and tertiary are below the threshold
+  const allLow = top3
+    .slice(1)
+    .filter(Boolean)
+    .every((c) => c.score * 100 < LOW_CONFIDENCE_THRESHOLD);
 
-  secondary = " Other conditions detected: " + others.join(" and ") + ".";
+  if (allLow) {
+    secondary =
+      " Some low-confidence indicators of " +
+      others.join(" and ") +
+      " were noted — nothing to worry about. These are not diagnoses and are likely just noise from the scan.";
+  } else {
+    secondary =
+      " Other possible indicators include " +
+      others.join(" and ") +
+      " — these are not diagnoses and may not require attention.";
+  }
 }
   let disclaimer = "";
 
