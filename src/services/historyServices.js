@@ -5,8 +5,9 @@ import {
   storedImages,
   skinCareProducts,
 } from "../drizzle/schema.js";
+import { deleteFromImageKit } from "../utils/imageKitUpload.js";
 import { db } from "../config/db.js";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 
 export async function fetchHistory(userId) {
   const rows = await db
@@ -39,6 +40,44 @@ export async function fetchHistory(userId) {
     .orderBy(desc(skinAnalysis.createdAt));
 
   return groupHistoryRows(rows);
+}
+
+export async function deleteHistory(userId, analysisId) {
+  //find the specific analysis first for reference and delete
+  const [analysis] = await db
+    .select({ imageId: skinAnalysis.imageId })
+    .from(skinAnalysis)
+    .where(
+      and(eq(skinAnalysis.id, analysisId), eq(skinAnalysis.userId, userId)),
+    )
+    .limit(1);
+
+  if (!analysis) return null;
+
+  //delete skin analysis table row first
+  await db
+    .delete(skinAnalysis)
+    .where(
+      and(eq(skinAnalysis.id, analysisId), eq(skinAnalysis.userId, userId)),
+    );
+
+  //then delete image row (there is an if cos there are some analysis that arent saved as intended)
+  if (analysis.imageId) {
+    //fetch image url first
+    const [image] = await db
+      .select({ photoUrl: storedImages.photoUrl })
+      .from(storedImages)
+      .where(eq(storedImages.id, analysis.imageId))
+      .limit(1);
+
+    // then ddelete stored_images row
+    await db.delete(storedImages).where(eq(storedImages.id, analysis.imageId));
+
+    // then delete imageurl
+    if (image?.photoUrl) await deleteFromImageKit(image.photoUrl);
+  }
+
+  return true;
 }
 
 //============= helper function ===============

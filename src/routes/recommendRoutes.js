@@ -4,8 +4,14 @@ import * as history from "../controllers/historyController.js"
 import { verifyToken } from "../middleware/verifyToken.js";
 
 const router = express.Router();
+/*
+    I didnt make a new route file for history since get history is basically a fetch recommendation
+*/
 
-router.get("/", verifyToken, history.getHistory);
+//recommendation
 router.post("/", verifyToken, recommend.saveRecommendation);
+//history
+router.get("/", verifyToken, history.getHistory);
+router.delete("/:id", verifyToken, history.deleteHistory)
 
 export default router;

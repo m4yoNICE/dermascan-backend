@@ -29,3 +29,14 @@ export async function uploadToImageKit(buffer, fileName, folder = "/general") {
   console.log(`  → [ImageKit] Upload done. URL: ${result.url}`);
   return result.url;
 }
+
+export async function deleteFromImageKit(fileUrl) {
+  //first api call
+  const results = await imagekit.files.list({
+    searchQuery: `url = "${fileUrl}"`,
+  });
+  if (!results?.length) return false;
+  //2nd api call
+  await imagekit.files.delete(results[0].fileId);
+  return true;
+}
