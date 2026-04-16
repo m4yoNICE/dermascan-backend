@@ -97,60 +97,64 @@ export function buildAnalysisDescription(analysisData, candidates) {
     top3.push(candidates[i]);
   }
 
-const primaryLabel = analysisData.condition_name ?? top3[0]?.label;
-const primary = formatLabel(primaryLabel);
-const primaryScore = (top3[0]?.score * 100).toFixed(1);
+  const primaryLabel = analysisData.condition_name ?? top3[0]?.label;
+  const primary = formatLabel(primaryLabel);
+  const primaryScore = (top3[0]?.score * 100).toFixed(1);
 
-let secondary = "";
-const LOW_CONFIDENCE_THRESHOLD = 30;
+  let secondary = "";
+  const LOW_CONFIDENCE_THRESHOLD = 30;
 
-if (top3[1] || top3[2]) {
-  const others = [];
+  if (top3[1] || top3[2]) {
+    const others = [];
 
-  if (top3[1]) {
-    // strip severity for secondary — pass a label without the severity word
-    const secondaryLabel = top3[1].label;
-    const words = secondaryLabel
-      .split("-")
-      .filter((w) => !["mild", "moderate", "severe"].includes(w));
-    const baseKey = words.join("-");
-    const secondaryName =
-      CONDITION_DISPLAY_NAMES[baseKey] ??
-      words.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    if (top3[1]) {
+      // strip severity for secondary — pass a label without the severity word
+      const secondaryLabel = top3[1].label;
+      const words = secondaryLabel
+        .split("-")
+        .filter((w) => !["mild", "moderate", "severe"].includes(w));
+      const baseKey = words.join("-");
+      const secondaryName =
+        CONDITION_DISPLAY_NAMES[baseKey] ??
+        words.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 
-    others.push(secondaryName + " (" + (top3[1].score * 100).toFixed(1) + "%)");
+      others.push(
+        secondaryName + " (" + (top3[1].score * 100).toFixed(1) + "%)",
+      );
+    }
+
+    if (top3[2]) {
+      const secondaryLabel = top3[2].label;
+      const words = secondaryLabel
+        .split("-")
+        .filter((w) => !["mild", "moderate", "severe"].includes(w));
+      const baseKey = words.join("-");
+      const secondaryName =
+        CONDITION_DISPLAY_NAMES[baseKey] ??
+        words.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+
+      others.push(
+        secondaryName + " (" + (top3[2].score * 100).toFixed(1) + "%)",
+      );
+    }
+    // Check if both secondary and tertiary are below the threshold
+    const allLow = top3
+      .slice(1)
+      .filter(Boolean)
+      .every((c) => c.score * 100 < LOW_CONFIDENCE_THRESHOLD);
+
+    if (allLow) {
+      secondary =
+        " Some low-confidence indicators of " +
+        others.join(" and ") +
+        " were noted — nothing to worry about. These are not diagnoses and are likely just noise from the scan.";
+    } else {
+      secondary =
+        " Other possible indicators include " +
+        others.join(" and ") +
+        " — these are not diagnoses and may not require attention.";
+    }
   }
-
-  if (top3[2]) {
-    const secondaryLabel = top3[2].label;
-    const words = secondaryLabel
-      .split("-")
-      .filter((w) => !["mild", "moderate", "severe"].includes(w));
-    const baseKey = words.join("-");
-    const secondaryName =
-      CONDITION_DISPLAY_NAMES[baseKey] ??
-      words.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-
-    others.push(secondaryName + " (" + (top3[2].score * 100).toFixed(1) + "%)");
-  }
-  // Check if both secondary and tertiary are below the threshold
-  const allLow = top3
-    .slice(1)
-    .filter(Boolean)
-    .every((c) => c.score * 100 < LOW_CONFIDENCE_THRESHOLD);
-
-  if (allLow) {
-    secondary =
-      " Some low-confidence indicators of " +
-      others.join(" and ") +
-      " were noted — nothing to worry about. These are not diagnoses and are likely just noise from the scan.";
-  } else {
-    secondary =
-      " Other possible indicators include " +
-      others.join(" and ") +
-      " — these are not diagnoses and may not require attention.";
-  }
-}
   let disclaimer = "";
 
   if (hadSkip) {
@@ -169,7 +173,11 @@ if (top3[1] || top3[2]) {
   );
 }
 
-export function buildRecommendDescription(conditionData, recommendationResult) {
+export function buildRecommendDescription(
+  conditionData,
+  recommendationResult,
+  skinData,
+) {
   let condition = "your condition";
   let ingredients = null;
   let count = 0;
@@ -204,6 +212,21 @@ export function buildRecommendDescription(conditionData, recommendationResult) {
       result + " We found " + count + " product(s) that may suit your skin.";
   } else {
     result = result + " We currently have no matching products in our catalog.";
+  }
+
+  // Add the skin profile paragraph if data exists
+  if (skinData && skinData.skinType) {
+    const typeFormatted =
+      skinData.skinType.charAt(0).toUpperCase() + skinData.skinType.slice(1);
+
+    let profileNote = `Products that don't work well for ${typeFormatted} skin were filtered out.`;
+
+    if (skinData.skinSensitivity === "sensitive") {
+      profileNote += " Harsh ingredients were also avoided for sensitive skin.";
+    }
+
+    // Append with double newline for paragraph spacing
+    result += `\n\n${profileNote}`;
   }
 
   return result;
