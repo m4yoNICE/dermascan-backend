@@ -1,7 +1,8 @@
-import { Resend } from "resend";
+import * as brevo from "@getbrevo/brevo";
 import { ENV } from "../config/env.js";
 
-const resend = new Resend(ENV.RESEND_API_KEY);
+const apiInstance = new brevo.TransactionalEmailsApi();
+apiInstance.authentications["apiKey"].apiKey = ENV.BREVO_API_KEY;
 
 /**
  * Sends OTP email to user
@@ -14,12 +15,16 @@ const resend = new Resend(ENV.RESEND_API_KEY);
 export const sendEmail = async (email, otp) => {
   try {
     console.log("Email and OTP: ", email, otp);
-    await resend.emails.send({
-      from: "DermaScan+ <onboarding@resend.dev>",
-      to: email,
-      subject: `Your OTP is ${otp}`,
-      html: `<p>Your OTP code is <b>${otp}</b>. It expires in 5 minutes.</p>`,
-    });
+    const sendSmtpEmail = new brevo.SendSmtpEmail();
+    sendSmtpEmail.sender = {
+      name: "DermaScan+",
+      email: ENV.BREVO_SENDER_EMAIL,
+    };
+    sendSmtpEmail.to = [{ email }];
+    sendSmtpEmail.subject = `Your OTP is ${otp}`;
+    sendSmtpEmail.htmlContent = `<p>Your OTP code is <b>${otp}</b>. It expires in 5 minutes.</p>`;
+
+    await apiInstance.sendTransacEmail(sendSmtpEmail);
     console.log("Email sent successfully.");
     return true;
   } catch (err) {
