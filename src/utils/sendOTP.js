@@ -1,13 +1,8 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { ENV } from "../config/env.js";
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: ENV.OTP_USER,
-    pass: ENV.OTP_PASSWORD_OTP,
-  },
-});
+const resend = new Resend(ENV.RESEND_API_KEY);
+
 /**
  * Sends OTP email to user
  *
@@ -19,8 +14,8 @@ const transporter = nodemailer.createTransport({
 export const sendEmail = async (email, otp) => {
   try {
     console.log("Email and OTP: ", email, otp);
-    await transporter.sendMail({
-      from: `"DermaScan+" <${ENV.OTP_USER}>`,
+    await resend.emails.send({
+      from: "DermaScan+ <onboarding@resend.dev>",
       to: email,
       subject: `Your OTP is ${otp}`,
       html: `<p>Your OTP code is <b>${otp}</b>. It expires in 5 minutes.</p>`,
