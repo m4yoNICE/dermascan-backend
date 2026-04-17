@@ -86,7 +86,9 @@ export const skinCareProducts = mysqlTable("skin_care_products", {
   productName: varchar("product_name", { length: 255 }).default("NULL"),
   productImage: varchar("product_image", { length: 255 }).default("NULL"),
   productBrand: varchar("product_brand", { length: 255 }).default("NULL"),
-  highlightedIngredients: varchar("highlighted_ingredients", { length: 255 }).default("NULL"),
+  highlightedIngredients: varchar("highlighted_ingredients", {
+    length: 255,
+  }).default("NULL"),
   ingredient: text("ingredient").default("NULL"),
   description: text("description").default("NULL"),
   productType: varchar("product_type", { length: 255 }).default("NULL"),
@@ -94,6 +96,7 @@ export const skinCareProducts = mysqlTable("skin_care_products", {
   availableIn: varchar("available_in", { length: 255 }).default("NULL"),
   skinType: varchar("skin_type", { length: 255 }).default("NULL"),
   dermaTested: boolean("derma_tested"),
+  routine: varchar("routine", { length: 255 }).default(null),
   timeRoutine: varchar("time_routine", { length: 255 }).default("NULL"),
   createdAt: datetime("created_at", { mode: "string", fsp: 3 })
     .default(sql`CURRENT_TIMESTAMP(3)`)
