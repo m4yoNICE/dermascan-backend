@@ -1,12 +1,7 @@
-import {
-  TransactionalEmailsApi,
-  SendSmtpEmail,
-  TransactionalEmailsApiApiKeys,
-} from "@getbrevo/brevo";
+import { BrevoClient } from "@getbrevo/brevo";
 import { ENV } from "../config/env.js";
 
-const apiInstance = new TransactionalEmailsApi();
-apiInstance.setApiKey(TransactionalEmailsApiApiKeys.apiKey, ENV.BREVO_API_KEY);
+const brevo = new BrevoClient({ apiKey: ENV.BREVO_API_KEY });
 
 /**
  * Sends OTP email to user
@@ -19,13 +14,12 @@ apiInstance.setApiKey(TransactionalEmailsApiApiKeys.apiKey, ENV.BREVO_API_KEY);
 export const sendEmail = async (email, otp) => {
   try {
     console.log("Email and OTP: ", email, otp);
-    const message = new SendSmtpEmail();
-    message.sender = { name: "DermaScan+", email: ENV.BREVO_SENDER_EMAIL };
-    message.to = [{ email }];
-    message.subject = `Your OTP is ${otp}`;
-    message.htmlContent = `<p>Your OTP code is <b>${otp}</b>. It expires in 5 minutes.</p>`;
-
-    await apiInstance.sendTransacEmail(message);
+    await brevo.transactionalEmails.sendTransacEmail({
+      sender: { name: "DermaScan+", email: ENV.BREVO_SENDER_EMAIL },
+      to: [{ email }],
+      subject: `Your OTP is ${otp}`,
+      htmlContent: `<p>Your OTP code is <b>${otp}</b>. It expires in 5 minutes.</p>`,
+    });
     console.log("Email sent successfully.");
     return true;
   } catch (err) {
