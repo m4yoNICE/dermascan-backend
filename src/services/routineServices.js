@@ -163,6 +163,7 @@ async function fetchProductRowsByAnalysis(analysisId, userId) {
       timeRoutine: skinCareProducts.timeRoutine,
       morningTime: userRoutine.morningTime,
       eveningTime: userRoutine.eveningTime,
+      routine: skinCareProducts.routine,
     })
     .from(productRecommendations)
     .innerJoin(
@@ -180,6 +181,7 @@ function shapeRoutineProducts(rows) {
     productImage: row.productImage,
     productType: row.productType,
     schedule: row.timeRoutine, // "Morning", "Night", "Morning, Night" — original label
+    routine: row.routine,
     timeRoutine: resolveRoutineTime(
       row.timeRoutine,
       row.morningTime,
