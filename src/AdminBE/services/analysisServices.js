@@ -24,7 +24,9 @@ export async function getAllAnalysis() {
       .from(skinAnalysis)
       .leftJoin(skinConditions, eq(skinAnalysis.conditionId, skinConditions.id))
       .leftJoin(users, eq(skinAnalysis.userId, users.id))
-      .leftJoin(storedImages, eq(skinAnalysis.imageId, storedImages.id));
+      .leftJoin(storedImages, eq(skinAnalysis.imageId, storedImages.id))
+      .orderBy(desc(skinAnalysis.createdAt));
+
 
     return result;
   } catch (err) {
