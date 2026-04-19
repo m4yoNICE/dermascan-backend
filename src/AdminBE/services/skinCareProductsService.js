@@ -17,13 +17,17 @@ export const getAllProducts = async () => {
       availableIn: skinCareProducts.availableIn,
       skinType: skinCareProducts.skinType,
       dermaTested: skinCareProducts.dermaTested,
+      routine: skinCareProducts.routine,
       timeRoutine: skinCareProducts.timeRoutine,
       createdAt: skinCareProducts.createdAt,
       updatedAt: skinCareProducts.updatedAt,
       conditionId: conditionProducts.conditionId,
     })
     .from(skinCareProducts)
-    .leftJoin(conditionProducts, eq(skinCareProducts.id, conditionProducts.productId));
+    .leftJoin(
+      conditionProducts,
+      eq(skinCareProducts.id, conditionProducts.productId),
+    );
 
   const grouped = {};
   for (const row of rows) {
@@ -41,6 +45,7 @@ export const getAllProducts = async () => {
         availableIn: row.availableIn,
         skinType: row.skinType,
         dermaTested: row.dermaTested,
+        routine: row.routine,
         timeRoutine: row.timeRoutine,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
