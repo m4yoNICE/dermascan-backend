@@ -129,19 +129,28 @@ export async function updateUserProcess(
     ? await bcrypt.hash(password, 10)
     : user.password;
 
-  await db
-    .update(users)
-    .set({
-      firstName: first_name,
-      lastName: last_name,
-      email,
-      password: hashedPassword,
-      roleId: role_id,
-      birthdate: birthdate || user.birthdate,
+  onst[updated] = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      password: users.password,
+      roleId: users.roleId,
+      roleName: role.roleName,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt,
     })
+    .from(users)
+    .leftJoin(role, eq(users.roleId, role.id))
     .where(eq(users.id, Number(id)));
 
-  return await db.query.users.findFirst({ where: eq(users.id, Number(id)) });
+  return {
+    ...updated,
+    role: updated.roleName
+      ? { id: updated.roleId, roleName: updated.roleName }
+      : null,
+  };
 }
 
 /**
