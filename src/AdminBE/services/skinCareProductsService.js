@@ -171,3 +171,33 @@ export const getAllProductImages = async () => {
 
   return result;
 }
+
+export const getProductRecommendationStats = async () => {
+  const allProducts = await db
+    .select({
+      productId: skinCareProducts.id,
+      name: skinCareProducts.productName,
+      image: skinCareProducts.productImage,
+    })
+    .from(skinCareProducts);
+
+  const recommended = await db
+    .select({
+      productId: productRecommendations.productId,
+      count: sql`COUNT(*)`,
+    })
+    .from(productRecommendations)
+    .groupBy(productRecommendations.productId);
+
+  const recommendedMap = new Map(
+    recommended.map((r) => [r.productId, Number(r.count)])
+  );
+
+  return allProducts.map((p) => ({
+    productId: p.productId,
+    name: p.name,
+    image: p.image,
+    recommendationCount: recommendedMap.get(p.productId) ?? 0,
+    selected: recommendedMap.has(p.productId),
+  }));
+};

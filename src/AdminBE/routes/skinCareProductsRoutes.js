@@ -57,5 +57,11 @@ router.get(
   checkAdmin,
   skinCareController.handleGetAllProductImages,
 );
+router.get(
+  "/getProductRecommendationStats",
+  verifyToken,
+  checkAdmin,
+  skinCareController.handleGetProductRecommendationStats,
+);
 
 export default router;

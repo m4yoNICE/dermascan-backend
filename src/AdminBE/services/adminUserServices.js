@@ -137,7 +137,7 @@ export async function updateUserProcess(
       email,
       password: hashedPassword,
       roleId: role_id,
-      birthdate: birthdate || null,
+      birthdate: birthdate || user.birthdate,
     })
     .where(eq(users.id, Number(id)));
 

@@ -133,3 +133,13 @@ export const handleGetAllProductImages = async (req, res) => {
       return res.status(500).json({ error: "Server error" });
   }
 }
+
+export const handleGetProductRecommendationStats = async (req, res) => {
+  try {
+    const data = await skinCareService.getProductRecommendationStats();
+    return res.status(200).json({ success: true, data });
+  } catch (err) {
+    console.error("Recommendation stats error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
