@@ -1,5 +1,9 @@
 import { db } from "../../config/db.js";
-import { skinCareProducts, conditionProducts } from "../../drizzle/schema.js";
+import {
+  skinCareProducts,
+  conditionProducts,
+  productRecommendations,
+} from "../../drizzle/schema.js";
 import { eq, sql} from "drizzle-orm";
 
 export const getAllProducts = async () => {
