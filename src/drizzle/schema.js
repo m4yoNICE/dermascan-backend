@@ -97,6 +97,7 @@ export const skinCareProducts = mysqlTable("skin_care_products", {
   skinType: varchar("skin_type", { length: 255 }).default("NULL"),
   dermaTested: boolean("derma_tested"),
   routine: varchar("routine", { length: 255 }).default(null),
+  price: varchar("price", { length: 50 }).default(null),
   timeRoutine: varchar("time_routine", { length: 255 }).default("NULL"),
   createdAt: datetime("created_at", { mode: "string", fsp: 3 })
     .default(sql`CURRENT_TIMESTAMP(3)`)

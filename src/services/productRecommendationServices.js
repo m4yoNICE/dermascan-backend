@@ -106,6 +106,7 @@ async function matchProductByHighlightIngredient(condition_id) {
       dermaTested: skinCareProducts.dermaTested,
       timeRoutine: skinCareProducts.timeRoutine,
       routine: skinCareProducts.routine,
+      price: skinCareProducts.price,
     })
     .from(skinCareProducts);
 
@@ -154,6 +155,7 @@ async function matchProductByTargetIngredient(condition_id) {
       dermaTested: skinCareProducts.dermaTested,
       timeRoutine: skinCareProducts.timeRoutine,
       routine: skinCareProducts.routine,
+      price: skinCareProducts.price,
     })
     .from(skinCareProducts);
 
@@ -188,6 +190,7 @@ async function matchProductByCondition(condition_id) {
       dermaTested: skinCareProducts.dermaTested,
       timeRoutine: skinCareProducts.timeRoutine,
       routine: skinCareProducts.routine,
+      price: skinCareProducts.price,
     })
     .from(conditionProducts)
     .innerJoin(
