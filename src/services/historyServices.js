@@ -100,9 +100,11 @@ function groupHistoryRows(rows) {
         condition:
           row.status === "success"
             ? row.condition
-            : row.status === "flagged"
-              ? null
-              : "Out of Scope",
+            : row.status === "normal"
+              ? row.condition
+              : row.status === "flagged"
+                ? null
+                : "Out of Scope",
         canRecommend: row.canRecommend,
         photoUrl: row.photoUrl,
         products: [],
