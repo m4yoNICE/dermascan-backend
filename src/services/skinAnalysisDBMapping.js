@@ -100,6 +100,7 @@ function checkResults(top1, candidates, condition) {
   if (top1.score < 0.5) return "out of scope";
   const margin = top1.score - candidates[2].score;
   if (margin < 0.15) return "out of scope";
+  if (condition.canRecommend.toLowerCase() === "normal") return "normal";
   if (condition.canRecommend.toLowerCase() === "no") return "flagged";
   return "success";
 }

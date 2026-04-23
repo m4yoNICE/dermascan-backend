@@ -67,7 +67,7 @@ export async function analyzeSkinOrchestrator(userId, imageBuffer) {
     let imageUrl = null;
 
     //SAVING IMAGE LOGIC
-    if (status === "flagged" || status === "success") {
+    if (status === "flagged" || status === "success" || status === "normal") {
       console.log(
         `[${Date.now() - startTime}ms] Saving image to storage (background)...`,
       );
@@ -99,6 +99,23 @@ export async function analyzeSkinOrchestrator(userId, imageBuffer) {
           },
         };
       }
+      //if skin is norma, show the results but no recommendations, congratiolate them lololol
+      if (status === "normal") {
+        console.log(`[${Date.now() - startTime}ms] Result: NORMAL SKIN`);
+        return {
+          statusCode: 200,
+          payload: {
+            result: "normal",
+            message: "Your skin looks healthy! No treatment needed.",
+            data: {
+              condition_name: transaction.condition_name,
+              confidenceScores: transaction.confidenceScores,
+              image_url: imageUrl,
+            },
+          },
+        };
+      }
+
       // normal flagged condition flagging
       console.log(
         `[${Date.now() - startTime}ms] Result: FLAGGED (Medical concern)`,
