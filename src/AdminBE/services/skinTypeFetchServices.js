@@ -34,3 +34,9 @@ export async function getSkinConditions(req, res) {
     return res.status(500).json({ error: "Server error" });
   }
 }
+
+export async function getSkinProfileByUserId(userId) {
+  return await db.query.skinProfile.findFirst({
+    where: eq(skinProfile.userId, userId),
+  });
+}

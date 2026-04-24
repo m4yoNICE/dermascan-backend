@@ -2,6 +2,8 @@ import { users, role } from "../../drizzle/schema.js";
 import { db } from "../../config/db.js";
 import { eq, count } from "drizzle-orm";
 import bcrypt from "bcryptjs";
+import { getAnalysisByUserId } from "./analysisServices.js";
+import { getSkinProfileByUserId } from "./skinTypeFetchServices.js";
 
 /**
  * Get admin data by user ID
@@ -53,8 +55,14 @@ export async function getAllUsersProcess() {
  * Get user by ID
  */
 export async function getUserByIdProcess(id) {
+  const userId = Number(id);
+
+  if (!userId || Number.isNaN(userId)) {
+    throw new Error("INVALID_USER_ID");
+  }
+
   return await db.query.users.findFirst({
-    where: eq(users.id, id),
+    where: eq(users.id, userId),
   });
 }
 
@@ -179,4 +187,23 @@ export async function countUsersProcess() {
     .from(users);
 
   return result[0].count;
+}
+
+export async function getUserReportData(userId) {
+  const id = Number(userId);
+
+  if (!id || Number.isNaN(id)) {
+    throw new Error("INVALID_USER_ID");
+  }
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, id),
+  });
+
+  if (!user) throw new Error("USER_NOT_FOUND");
+
+  const analysis = await getAnalysisByUserId(id);
+  const skinProfile = await getSkinProfileByUserId(id);
+
+  return { user, analysis, skinProfile };
 }

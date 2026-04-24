@@ -8,6 +8,8 @@ import {
   countUsersProcess,
 } from "../services/adminUserServices.js";
 
+import { getAnalysisByUserId } from "../services/analysisServices.js";
+
 // Get admin data
 export async function getAdminData(req, res) {
   try {

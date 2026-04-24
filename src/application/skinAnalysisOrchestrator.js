@@ -115,7 +115,6 @@ export async function analyzeSkinOrchestrator(userId, imageBuffer) {
           },
         };
       }
-
       // normal flagged condition flagging
       console.log(
         `[${Date.now() - startTime}ms] Result: FLAGGED (Medical concern)`,

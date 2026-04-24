@@ -47,3 +47,19 @@ export const getAllConditions = async () => {
     .groupBy(skinConditions.condition)
     .orderBy(desc(sql`COUNT(${skinAnalysis.id})`));
 };
+
+export async function getAnalysisByUserId(userId) {
+  return await db
+    .select({
+      id: skinAnalysis.id,
+      conditionName: skinConditions.condition,
+      canRecommend: skinConditions.canRecommend,
+      status: skinAnalysis.status,
+      confidenceScores: skinAnalysis.confidenceScores,
+      createdAt: skinAnalysis.createdAt,
+    })
+    .from(skinAnalysis)
+    .leftJoin(skinConditions, eq(skinAnalysis.conditionId, skinConditions.id))
+    .where(eq(skinAnalysis.userId, userId))
+    .orderBy(desc(skinAnalysis.createdAt));
+}
