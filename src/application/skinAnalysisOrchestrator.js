@@ -45,14 +45,13 @@ export async function analyzeSkinOrchestrator(userId, imageBuffer) {
       `[${Date.now() - startTime}ms] Mapping results to database catalog...`,
     );
     let transaction = await mapSkinResultToCatalog(userId, skinResult);
-
     if (!transaction) {
-      console.error(
-        `[${Date.now() - startTime}ms] DATABASE ERROR: Transaction mapping failed.`,
-      );
       return {
-        statusCode: 404,
-        payload: { error: "Failed to save data to skin analysis transaction" },
+        statusCode: 200,
+        payload: {
+          result: "failed",
+          message: "The image does not contain skin or a valid skin region.",
+        },
       };
     }
 
@@ -99,22 +98,6 @@ export async function analyzeSkinOrchestrator(userId, imageBuffer) {
           },
         };
       }
-      //if skin is norma, show the results but no recommendations, congratiolate them lololol
-      if (status === "normal") {
-        console.log(`[${Date.now() - startTime}ms] Result: NORMAL SKIN`);
-        return {
-          statusCode: 200,
-          payload: {
-            result: "normal",
-            message: "Your skin looks healthy! No treatment needed.",
-            data: {
-              condition_name: transaction.condition_name,
-              confidenceScores: transaction.confidenceScores,
-              image_url: imageUrl,
-            },
-          },
-        };
-      }
       // normal flagged condition flagging
       console.log(
         `[${Date.now() - startTime}ms] Result: FLAGGED (Medical concern)`,
@@ -124,6 +107,22 @@ export async function analyzeSkinOrchestrator(userId, imageBuffer) {
         payload: {
           result: "flagged",
           message: "This concern may require professional consultation.",
+        },
+      };
+    }
+    //if skin is norma, show the results but no recommendations, congratiolate them lololol
+    if (status === "normal") {
+      console.log(`[${Date.now() - startTime}ms] Result: NORMAL SKIN`);
+      return {
+        statusCode: 200,
+        payload: {
+          result: "normal",
+          message: "Your skin looks healthy! No treatment needed.",
+          data: {
+            condition_name: transaction.condition_name,
+            confidenceScores: transaction.confidenceScores,
+            image_url: imageUrl,
+          },
         },
       };
     }

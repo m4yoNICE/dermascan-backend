@@ -9,7 +9,8 @@ export async function fetchAnalysisLogsByUser(user_id) {
 }
 
 export async function mapSkinResultToCatalog(user_id, skinResult) {
-  if (!skinResult?.candidates) return null;
+  if (!skinResult?.candidates || skinResult.candidates.length === 0)
+    return null;
 
   const top1 = skinResult.candidates[0];
 
